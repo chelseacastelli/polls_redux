@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
+from .forms import QuestionCreateForm
 
 from .models import Choice, Question
 
@@ -58,3 +59,19 @@ def vote(request, question_id):
         # user hits the Back button.
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
 
+class QuestionCreateView(generic.edit.CreateView):
+    def get(self, request, *args, **kwargs):
+        context = {
+          'form': QuestionCreateForm()
+        }
+        return render(request, 'polls/create.html', context)
+
+    def post(self, request, *args, **kwargs):
+        form = QuestionCreateForm(request.POST)
+        if form.is_valid():
+            question = form.save()
+            question.save()
+            return HttpResponseRedirect(
+                reverse('polls:detail', args=[question.id]))
+        # else if form is not valid
+        return render(request, 'polls/create.html', { 'form': form })
